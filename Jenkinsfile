@@ -6,7 +6,7 @@ pipeline {
     }
     
     environment {
-        // Le nom d'utilisateur Docker Hub de votre amie (en minuscules)
+        // Le nom d'utilisateur Docker Hub de votre amie
         IMAGE = 'itebbb/monapp'
         TAG = "build-${env.BUILD_NUMBER}"
     }
@@ -27,7 +27,7 @@ pipeline {
         
         stage('Smoke Test') {
             steps {
-                // Test sur le port 8084 pour ne pas bloquer le port 8080
+                // Test sur le port 8084 pour éviter les conflits
                 bat """
                     docker rm -f monapp_test 2>nul || ver > nul
                     docker run -d --name monapp_test -p 8084:80 %IMAGE%:%TAG%
@@ -44,7 +44,7 @@ pipeline {
                                                   usernameVariable: 'USER', 
                                                   passwordVariable: 'PASS')]) {
                     bat """
-                        echo|set /p="%PASS%" | docker login -u %USER% --password-stdin
+                        echo %PASS% | docker login -u %USER% --password-stdin
                         docker tag %IMAGE%:%TAG% %IMAGE%:latest
                         docker push %IMAGE%:%TAG%
                         docker push %IMAGE%:latest
