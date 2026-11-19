@@ -3,13 +3,15 @@ pipeline {
     options { timestamps() }
     
     environment {
-        IMAGE = 'itebbb/monapp'   // Le compte de votre amie
+        IMAGE = 'itebbb/monapp' 
         TAG = "build-${env.BUILD_NUMBER}"
     }
     
     stages {
         stage('Checkout') {
-            steps { checkout scm }
+            steps { 
+                checkout scm 
+            }
         }
         
         stage('Docker Build') {
@@ -50,4 +52,5 @@ pipeline {
     post {
         success { echo 'Build+Test+Push OK' }
         failure { echo 'Build/Test+Push KO' }
-    }
+    }}
+}
