@@ -39,31 +39,34 @@ pipeline {
         }
 
         stage('Push (Docker Hub)') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
-                    bat '''
-                        powershell -NoProfile -NonInteractive -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin"
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'dockerhub-creds',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+            )
+        ]) {
+            bat '''
+                @echo off
 
-                        if errorlevel 1 exit /b 1
+                echo %DOCKER_PASS%| docker login -u %DOCKER_USER% --password-stdin
 
-                        docker tag %IMAGE%:%TAG% %IMAGE%:latest
+                if errorlevel 1 exit /b 1
 
-                        docker push %IMAGE%:%TAG%
+                docker tag %IMAGE%:%TAG% %IMAGE%:latest
 
-                        if errorlevel 1 exit /b 1
+                docker push %IMAGE%:%TAG%
 
-                        docker push %IMAGE%:latest
-                    '''
-                }
-            }
+                if errorlevel 1 exit /b 1
+
+                docker push %IMAGE%:latest
+
+                if errorlevel 1 exit /b 1
+            '''
         }
     }
+}
 
     post {
         success {
