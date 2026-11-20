@@ -1,26 +1,31 @@
+
 pipeline {
     agent any
-    options { timestamps() }
-    
+
+    options {
+        timestamps()
+    }
+
     environment {
-        IMAGE = 'itebbb/monapp' 
+        IMAGE = 'itebbb/monapp'
         TAG = "build-${env.BUILD_NUMBER}"
     }
-    
+
     stages {
+
         stage('Checkout') {
-            steps { 
-                checkout scm 
+            steps {
+                checkout scm
             }
         }
-        
+
         stage('Docker Build') {
             steps {
                 bat 'docker version'
                 bat "docker build -t %IMAGE%:%TAG% ."
             }
         }
-        
+
         stage('Smoke Test') {
             steps {
                 bat """
@@ -32,35 +37,39 @@ pipeline {
                 """
             }
         }
-        
+
         stage('Push (Docker Hub)') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub-creds',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-        )]) {
-            bat '''
-                powershell -NoProfile -NonInteractive -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin"
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    bat '''
+                        powershell -NoProfile -NonInteractive -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin"
 
-                if errorlevel 1 exit /b 1
+                        if errorlevel 1 exit /b 1
 
-                docker tag %IMAGE%:%TAG% %IMAGE%:latest
+                        docker tag %IMAGE%:%TAG% %IMAGE%:latest
 
-                docker push %IMAGE%:%TAG%
+                        docker push %IMAGE%:%TAG%
 
-                if errorlevel 1 exit /b 1
+                        if errorlevel 1 exit /b 1
 
-                docker push %IMAGE%:latest
-            '''
+                        docker push %IMAGE%:latest
+                    '''
+                }
+            }
         }
     }
-}
-    
-  post {
+
+    post {
         success {
             echo 'Build+Test+Push OK'
         }
+
         failure {
             echo 'Build/Test+Push KO'
         }
