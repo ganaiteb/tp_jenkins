@@ -49,8 +49,12 @@ pipeline {
         }
     }
     
-    post {
-        success { echo 'Build+Test+Push OK' }
-        failure { echo 'Build/Test+Push KO' }
-    }}
+  post {
+        success {
+            echo 'Build+Test+Push OK'
+        }
+        failure {
+            echo 'Build/Test+Push KO'
+        }
+    }
 }
